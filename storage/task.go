@@ -9,17 +9,17 @@ import (
 )
 
 type Task struct {
-	ID   int64
-	Task string
-	Note string
-	Done bool
+	ID   int64  `json:"id"`
+	Task string `json:"task"`
+	Note string `json:"note"`
+	Done bool   `json:"done"`
 	MetaData
 }
 
 type MetaData struct {
-	CreatedAt  time.Time
-	UpdatedAt  time.Time
-	AssigneeID int64
+	CreatedAt  time.Time `json:"created_at"`
+	UpdatedAt  time.Time `json:"updated_at"`
+	AssigneeID int64     `json:"assignee_id"`
 }
 
 type TaskHandler struct {
@@ -54,11 +54,14 @@ func (handler *TaskHandler) CreateTask(task Task) (error, *Task) {
 	return nil, &task
 }
 
-func (handler *TaskHandler) GetTask(id int) (error, *Task) {
+//GetTask return a bunch of tasks for one user
+func (handler *TaskHandler) GetTask(id int) (error, *[]Task) {
 	rows, err := handler.db.Query("SELECT * FROM task WHERE ID = ?", id) // ????????????????
-	task := Task{}
+	tasks := []Task{}
 	defer rows.Close()
-	rows.Next()
+	if rows.Next() == false {
+		return errors.New("no such id"), nil
+	}
 
 	// db.Query didnt work but db.QueryRow worked like a charm here???????
 	// need explanation! (db.Query need Next() call to Rows)
@@ -67,8 +70,13 @@ func (handler *TaskHandler) GetTask(id int) (error, *Task) {
 	}
 	//fmt.Println(rows.Columns())
 	fmt.Println(rows)
-	rows.Scan(&task.ID, &task.AssigneeID, &task.CreatedAt, &task.UpdatedAt, &task.Task, &task.Note, &task.Done)
-	return nil, &task
+	iter := 0
+	for rows.Next() == true {
+		task := tasks[iter]
+		rows.Scan(&task.ID, &task.AssigneeID, &task.CreatedAt, &task.UpdatedAt, &task.Task, &task.Note, &task.Done)
+	}
+
+	return nil, &tasks
 
 }
 

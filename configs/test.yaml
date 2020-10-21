@@ -1,0 +1,5 @@
+  host : "127.0.0.1"
+  port : 6000
+  db : "tasks_test"
+  db_host : "127.0.0.1"
+  db_user : "thang"

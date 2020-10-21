@@ -2,26 +2,50 @@ package main
 
 import (
 	"database/sql"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
+	"todos-svr/handler"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-sql-driver/mysql"
-
-	"github.com/letung3105/todos-svr/handler"
+	"github.com/spf13/viper"
 )
 
 var port int
 var host string
 
 func init() {
-	flag.IntVar(&port, "p", 3000, " port flag define which port the server will use")
-	flag.StringVar(&host, "h", "127.0.0.1", "the address of your server (default to localhost")
+	viper.SetConfigName("default")
+	viper.SetConfigType("yaml")
+	viper.AddConfigPath("./configs")
+	viper.WatchConfig()
+	viper.OnConfigChange(func(e fsnotify.Event) {
+		fmt.Println("Config file changed:", e.Name)
+	})
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(fmt.Errorf("Fatal error config file: %s \n", err))
+	}
+	env := "development"
+	if envName := os.Getenv("ENV"); envName != "" {
+		env = strings.ToLower(envName)
+	}
+	viper.SetConfigName(env)
+	viper.MergeInConfig()
+
+	viper.SetEnvPrefix(fmt.Sprint("todo_", env))
+	viper.BindEnv("secret")
+	viper.BindEnv("db_pass")
+	port = viper.GetInt("port")
+	host = viper.GetString("host")
 }
 
 func main() {
-	cfg, err := mysql.ParseDSN("thang:060901ttvt@tcp(127.0.0.1)/tasks")
+	cfgStr := fmt.Sprintf("%v:%v@tcp(%v)/%v", viper.Get("db_user"), viper.Get("db_pass"), viper.Get("db_host"), viper.Get("db"))
+	cfg, err := mysql.ParseDSN(cfgStr)
 	cfg.ParseTime = true
 	db, err := sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {

@@ -2,8 +2,8 @@ Drop table task;
 Drop table users;
 CREATE TABLE users ( 
 ID BIGINT NOT NULL auto_increment,
-Username char(32) NOT NULL,
-Passwords  VARBINARY(1024) NOT NULL,
+Username char(32) UNIQUE NOT NULL,
+Passwords  VARCHAR(100) NOT NULL,
 primary key(ID)
 );
 CREATE TABLE task (
