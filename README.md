@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # todo-svr 
 ## gloang code for assigning tasks to user
 
@@ -39,3 +40,5 @@
 - A proper frontend 
 - ElasticSearch + Redis ( stolen ideas)
 - TLS setup?
+=======
+
